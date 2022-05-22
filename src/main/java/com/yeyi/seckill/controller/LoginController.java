@@ -40,6 +40,7 @@ public class LoginController {
     public String toLogin() {
         return "login";
     }
+
     /**
      * @description:登录功能
      * @author: yeyi@ustc
@@ -49,8 +50,9 @@ public class LoginController {
      **/
     @RequestMapping("/doLogin")
     @ResponseBody
-    public RespBean doLogin(@Valid LoginVo loginVo) {
-        return userService.doLogin(loginVo);
+    public RespBean doLogin(@Valid LoginVo loginVo, HttpServletRequest request, HttpServletResponse response) {
+
+        return userService.doLogin(loginVo,request,response);
     }
 }
 

@@ -5,6 +5,9 @@ import com.yeyi.seckill.entity.User;
 import com.yeyi.seckill.vo.LoginVo;
 import com.yeyi.seckill.vo.RespBean;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * 
  *
@@ -13,5 +16,5 @@ import com.yeyi.seckill.vo.RespBean;
  */
 public interface IUserService extends IService<User> {
 
-    RespBean doLogin(LoginVo loginVo);
+    RespBean doLogin(LoginVo loginVo, HttpServletRequest request, HttpServletResponse response);
 }
