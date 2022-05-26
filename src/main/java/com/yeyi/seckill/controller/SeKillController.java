@@ -1,26 +1,20 @@
 package com.yeyi.seckill.controller;
 
-import com.example.seckilldemo.config.AccessLimit;
-import com.example.seckilldemo.entity.TOrder;
-import com.example.seckilldemo.entity.TSeckillOrder;
-import com.example.seckilldemo.entity.TUser;
-import com.example.seckilldemo.exception.GlobalException;
-import com.example.seckilldemo.rabbitmq.MQSender;
-import com.example.seckilldemo.service.ITGoodsService;
-import com.example.seckilldemo.service.ITOrderService;
-import com.example.seckilldemo.service.ITSeckillOrderService;
-import com.example.seckilldemo.utils.JsonUtil;
-import com.example.seckilldemo.vo.GoodsVo;
-import com.example.seckilldemo.vo.RespBean;
-import com.example.seckilldemo.vo.RespBeanEnum;
-import com.example.seckilldemo.vo.SeckillMessage;
-import com.wf.captcha.ArithmeticCaptcha;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.yeyi.seckill.entity.Order;
+import com.yeyi.seckill.entity.SeckillOrder;
 import com.yeyi.seckill.entity.User;
+import com.yeyi.seckill.service.IGoodsService;
+import com.yeyi.seckill.service.IOrderService;
+import com.yeyi.seckill.service.ISeckillOrderService;
+import com.yeyi.seckill.vo.GoodsVo;
 import com.yeyi.seckill.vo.RespBean;
+import com.yeyi.seckill.vo.RespBeanEnum;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -35,8 +29,12 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/seckill")
 public class SeKillController{
-
-
+    @Autowired
+    private IGoodsService goodsService;
+    @Autowired
+    private ISeckillOrderService seckillOrderService;
+    @Autowired
+    private IOrderService orderService;
     /**
      * @description:秒杀
      * @author: yeyi@ustc
@@ -44,8 +42,27 @@ public class SeKillController{
      * @param: [path, user, goodsId]
      * @return: com.yeyi.seckill.vo.RespBean
      **/
-    @RequestMapping("/doSecKill")
+    @RequestMapping("/doSeckill")
     public String doSecKill(Model model, User user, Long goodsId) {
-
+        if(user == null){
+            return "login";
+        }
+        model.addAttribute("user",user);
+        GoodsVo goods = goodsService.findGoodsVoByGoodsId(goodsId);
+        //判断库存
+        if(goods.getGoodsStock() < 1){
+            model.addAttribute("errmsg", RespBeanEnum.EMPTY_STOCK.getMessage());
+            return "secKillFail";
+        }
+        //判断用户是否有重复的抢购行为
+        SeckillOrder seckillOrder = seckillOrderService.getOne(new QueryWrapper<SeckillOrder>().eq("user_id", user.getId()).eq("goods_id", goodsId));
+        if(seckillOrder != null){
+            model.addAttribute("errmsg", RespBeanEnum.REPEATE_ERROR.getMessage());
+            return "secKillFail";
+        }
+        Order order = orderService.seckill(user,goods);
+        model.addAttribute("order",order);
+        model.addAttribute("goods",goods);
+        return "orderDetail";
     }
 }

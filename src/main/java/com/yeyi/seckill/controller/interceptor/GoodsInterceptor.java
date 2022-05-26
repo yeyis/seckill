@@ -28,7 +28,7 @@ public class GoodsInterceptor implements HandlerInterceptor {
         String ticket = CookieUtil.getCookieValue(request, "userTicket");
         User user = (User) session.getAttribute(ticket);
         if(user == null){
-            response.sendRedirect("http://localhost/login/toLogin");
+            response.sendRedirect("/login/toLogin");
             return false;
         }
         else{
